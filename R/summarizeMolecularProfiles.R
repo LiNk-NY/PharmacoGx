@@ -23,7 +23,7 @@
 #' @param features \code{caracter} A vector of the feature names to include in the summary
 #' @param summary.stat \code{character} which summary method to use if there are repeated
 #'   cell.lines? Choices are "mean", "median", "first", or "last"
-#'   In case molecular data type is mutation or fusion "and" and "or" choices are available 
+#'   In case molecular data type is mutation or fusion "and" and "or" choices are available
 #' @param fill.missing \code{boolean} should the missing cell lines not in the
 #'   molecular data object be filled in with missing values?
 #' @param summarize A flag which when set to FALSE disables summarizing and
@@ -38,15 +38,15 @@
 ##TODO:: Add features parameter
 
 summarizeMolecularProfiles <- function(pSet, mDataType, cell.lines, features, summary.stat=c("mean", "median", "first", "last", "and", "or"), fill.missing=TRUE, summarize=TRUE, verbose=TRUE) {
-  
+
   if (!(mDataType %in% names(pSet@molecularProfiles))) {
     stop (sprintf("Invalid mDataType, choose among: %s", paste(names(pSet@molecularProfiles), collapse=", ")))
   }
-  
+
   if(summarize==FALSE){
     return(pSet@molecularProfiles[[mDataType]])
   }
-  
+
   if (missing(features)) {
     features <- rownames(featureInfo(pSet, mDataType))
   } else {
@@ -56,7 +56,7 @@ summarizeMolecularProfiles <- function(pSet, mDataType, cell.lines, features, su
     }
     features <- features[fix]
   }
-  
+
   summary.stat <- match.arg(summary.stat)
   if((!Biobase::annotation(pSet@molecularProfiles[[mDataType]]) %in% c("mutation","fusion")) & (!summary.stat %in% c("mean", "median", "first", "last"))) {
     stop ("Invalid summary.stat, choose among: mean, median, first, last" )
@@ -64,14 +64,14 @@ summarizeMolecularProfiles <- function(pSet, mDataType, cell.lines, features, su
   if((Biobase::annotation(pSet@molecularProfiles[[mDataType]]) %in% c("mutation","fusion")) & (!summary.stat %in% c("and", "or"))) {
     stop ("Invalid summary.stat, choose among: and, or" )
   }
-  
+
   if (missing(cell.lines)) {
     cell.lines <- cellNames(pSet)
   }
-  
+
   dd <- molecularProfiles(pSet, mDataType)
   pp <- phenoInfo(pSet, mDataType)
-  
+
   if(Biobase::annotation(pSet@molecularProfiles[[mDataType]]) == "mutation") {
     tt <- dd
     tt[which(!is.na(dd) & dd =="wt")] <- FALSE
@@ -98,11 +98,11 @@ summarizeMolecularProfiles <- function(pSet, mDataType, cell.lines, features, su
   if (length(cell.lines) == 0) {
     stop ("No cell lines in common")
   }
-    
+
   ## select profiles with no replicates
   duplix <- unique(pp[!is.na(pp[ , "cellid"]) & duplicated(pp[ , "cellid"]), "cellid"])
   ucell <- setdiff(cell.lines, duplix)
-  
+
   ## keep the non ambiguous cases
   dd2 <- dd[ , match(ucell, pp[ , "cellid"]), drop=FALSE]
   pp2 <- pp[match(ucell, pp[ , "cellid"]), , drop=FALSE]
@@ -110,7 +110,7 @@ summarizeMolecularProfiles <- function(pSet, mDataType, cell.lines, features, su
     if (verbose) {
       message(sprintf("Summarizing %s molecular data for:\t%s", mDataType, pSet@annotation$name))
       total <- length(duplix)
-      # create progress bar 
+      # create progress bar
       pb <- utils::txtProgressBar(min=0, max=total, style=3)
       i <- 1
     }
@@ -118,9 +118,9 @@ summarizeMolecularProfiles <- function(pSet, mDataType, cell.lines, features, su
     pp2 <- apply(pp2, 2, function (x) {
       if (is.factor(x)) {
         return (as.character(x))
-      } else { 
-        return (x) 
-      } 
+      } else {
+        return (x)
+      }
     })
     ## there are some replicates to collapse
     for (x in duplix) {
@@ -131,7 +131,7 @@ summarizeMolecularProfiles <- function(pSet, mDataType, cell.lines, features, su
         },
         "median"={
           ddt <- apply(dd[ , myx, drop=FALSE], 1, median)
-        }, 
+        },
         "first"={
           ddt <- dd[ , myx[1], drop=FALSE]
         },
@@ -162,23 +162,26 @@ summarizeMolecularProfiles <- function(pSet, mDataType, cell.lines, features, su
     }
   }
   colnames(dd2) <- rownames(pp2) <- c(ucell, duplix)
-  
+
   ## reorder cell lines
   dd2 <- dd2[ , cell.lines, drop=FALSE]
   pp2 <- pp2[cell.lines, , drop=FALSE]
   pp2[ , "cellid"] <- cell.lines
-  res <- pSet@molecularProfiles[[mDataType]]
+  rest <- pSet@molecularProfiles[[mDataType]]
   if(Biobase::annotation(pSet@molecularProfiles[[mDataType]]) %in% c("mutation", "fusion")) {
     tt <- dd2
     tt[which(!is.na(dd2) & dd2)] <- "1"
     tt[which(!is.na(dd2) & !dd2)] <- "0"
     dd2 <- tt
   }
-  Biobase::exprs(res) <- dd2
-  Biobase::pData(res) <- as.data.frame(pp2, stringsAsFactors=FALSE)
-  Biobase::exprs(res) <- Biobase::exprs(res)[features,]
-  Biobase::fData(res) <- Biobase::fData(res)[features,]
-  Biobase::protocolData(res) <- Biobase::AnnotatedDataFrame()
-  if(!is.null(assayDataElement(res, "se.exprs"))) assayDataElement(res,"se.exprs") <- NULL
-  return(res)
+  rest <- Biobase::assayDataElementReplace(rest, "exprs", dd2, validate = FALSE)
+  # Biobase::exprs(res) <- dd2
+  Biobase::pData(rest) <- as.data.frame(pp2, stringsAsFactors=FALSE)
+  # Biobase::exprs(rest) <- Biobase::exprs(rest)[features,]
+  rest <- Biobase::assayDataElementReplace(rest, "exprs", exprs(rest)[features,], validate = FALSE)
+  Biobase::fData(rest) <- Biobase::fData(rest)[features,]
+  Biobase::protocolData(rest) <- Biobase::AnnotatedDataFrame()
+  if(!is.null(assayDataElement(rest, "se.exprs")))
+      assayDataElement(rest,"se.exprs") <- NULL
+  return(rest)
 }
