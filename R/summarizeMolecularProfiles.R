@@ -167,21 +167,21 @@ summarizeMolecularProfiles <- function(pSet, mDataType, cell.lines, features, su
   dd2 <- dd2[ , cell.lines, drop=FALSE]
   pp2 <- pp2[cell.lines, , drop=FALSE]
   pp2[ , "cellid"] <- cell.lines
-  rest <- pSet@molecularProfiles[[mDataType]]
+  res <- pSet@molecularProfiles[[mDataType]]
   if(Biobase::annotation(pSet@molecularProfiles[[mDataType]]) %in% c("mutation", "fusion")) {
     tt <- dd2
     tt[which(!is.na(dd2) & dd2)] <- "1"
     tt[which(!is.na(dd2) & !dd2)] <- "0"
     dd2 <- tt
   }
-  rest <- Biobase::assayDataElementReplace(rest, "exprs", dd2, validate = FALSE)
+  res <- Biobase::assayDataElementReplace(res, "exprs", dd2, validate = FALSE)
   # Biobase::exprs(res) <- dd2
-  Biobase::pData(rest) <- as.data.frame(pp2, stringsAsFactors=FALSE)
-  # Biobase::exprs(rest) <- Biobase::exprs(rest)[features,]
-  rest <- Biobase::assayDataElementReplace(rest, "exprs", exprs(rest)[features,], validate = FALSE)
-  Biobase::fData(rest) <- Biobase::fData(rest)[features,]
-  Biobase::protocolData(rest) <- Biobase::AnnotatedDataFrame()
-  if(!is.null(assayDataElement(rest, "se.exprs")))
-      assayDataElement(rest,"se.exprs") <- NULL
-  return(rest)
+  Biobase::pData(res) <- as.data.frame(pp2, stringsAsFactors=FALSE)
+  # Biobase::exprs(res) <- Biobase::exprs(res)[features,]
+  res <- Biobase::assayDataElementReplace(res, "exprs", exprs(res)[features,], validate = FALSE)
+  Biobase::fData(res) <- Biobase::fData(res)[features,]
+  Biobase::protocolData(res) <- Biobase::AnnotatedDataFrame()
+  if(!is.null(assayDataElement(res, "se.exprs")))
+      assayDataElement(res,"se.exprs") <- NULL
+  return(res)
 }

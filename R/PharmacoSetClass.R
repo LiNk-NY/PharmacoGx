@@ -1319,11 +1319,27 @@ checkPSetStructure <-
 
 # TODO: Coerce pSet to MultiAssayExperiment
 # PharmacoSetToMultiAssayExperiment <- function(pSet) {
-# expList <- ExperimentList(pSet@molecularProfiles)
-# pSetDat <- pSet@cell
-# multiSet <- MultiAssayExperiment::MultiAssayExperiment(expList, pSetDat)
-# metadata(multiSet) <- pSet@annotation
+#     datList <- pSet@molecularProfiles
+# #     if (pSet@datasetType == "sensitivity") {
+# #         extraList <- pSet@sensitivity
+# #     } else {
+# #         extraList <- pset@perturbation
+# #     }
+#     primary <- rownames(pSet@cell)
+#     cLines <- vapply(strsplit(colnames(pSet@molecularProfiles$rnaseq), "\\." ),
+#                      FUN = function(x) x[2L] , FUN.VALUE = character(1L))
+#     listedMap <- list(rna = cbind(primary, colname = pSet@cell[, "Expression.arrays"]),
+#          cnv = cbind(primary, colname = pSet@cell[, "SNP.arrays"]),
+#          mutation = cbind(primary, colname = pSet@cell[, "Cell.line.primary.name"]),
+#          rnaseq = cbind(primary, colname =
+#                         colnames(pSet@molecularProfiles$rnaseq)[match(primary, cLines)]))
+#     sampMap <- listToMap(listedMap)
+#     expList <- ExperimentList(datList)
+#     pSetDat <- pSet@cell
+#     multiSet <- MultiAssayExperiment::MultiAssayExperiment(expList, pSetDat, sampMap)
+#     metadata(multiSet) <- pSet@annotation
+#     return(multiSet)
 # }
-#
-# setAs("PharmacoSet", "MultiAssayExperiment", function(from)
-#     PharmacoSetToMultiAssayExperiment(from))
+# #
+# # setAs("PharmacoSet", "MultiAssayExperiment", function(from)
+# #     PharmacoSetToMultiAssayExperiment(from))
