@@ -1325,8 +1325,9 @@ checkPSetStructure <-
 # #     } else {
 # #         extraList <- pset@perturbation
 # #     }
+# # Sensitivity data does not have celllines as columns
 #     primary <- rownames(pSet@cell)
-#     cLines <- vapply(strsplit(colnames(pSet@molecularProfiles$rnaseq), "\\." ),
+#     cLines <- vapply(strsplit(colnames(pSet@molecularProfiles$rnaseq), "\\."),
 #                      FUN = function(x) x[2L] , FUN.VALUE = character(1L))
 #     listedMap <- list(rna = cbind(primary, colname = pSet@cell[, "Expression.arrays"]),
 #          cnv = cbind(primary, colname = pSet@cell[, "SNP.arrays"]),

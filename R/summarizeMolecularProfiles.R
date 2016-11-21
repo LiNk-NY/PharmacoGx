@@ -174,14 +174,13 @@ summarizeMolecularProfiles <- function(pSet, mDataType, cell.lines, features, su
     tt[which(!is.na(dd2) & !dd2)] <- "0"
     dd2 <- tt
   }
-  res <- Biobase::assayDataElementReplace(res, "exprs", dd2, validate = FALSE)
-  # Biobase::exprs(res) <- dd2
+  res <- ExpressionSet(dd2)
+  #Biobase::exprs(res) <- dd2
   Biobase::pData(res) <- as.data.frame(pp2, stringsAsFactors=FALSE)
-  # Biobase::exprs(res) <- Biobase::exprs(res)[features,]
-  res <- Biobase::assayDataElementReplace(res, "exprs", exprs(res)[features,], validate = FALSE)
-  Biobase::fData(res) <- Biobase::fData(res)[features,]
+  #Biobase::exprs(res) <- Biobase::exprs(res)[features,]
+  #Biobase::fData(res) <- Biobase::fData(res)[features,]
+  res <- res[features,]
   Biobase::protocolData(res) <- Biobase::AnnotatedDataFrame()
-  if(!is.null(assayDataElement(res, "se.exprs")))
-      assayDataElement(res,"se.exprs") <- NULL
+  if(!is.null(assayDataElement(res, "se.exprs"))) assayDataElement(res,"se.exprs") <- NULL
   return(res)
 }
